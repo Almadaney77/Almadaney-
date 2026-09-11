@@ -322,21 +322,36 @@ async function handleFile(inp){
   const ext = f.name.split('.').pop().toLowerCase();
   let text = '';
   try{
-    if(ext === 'pdf'){ text = await readPdf(f); }
-    else if(ext === 'docx'){ text = await readDocx(f); }
-    else if(ext === 'doc'){ text = await readOldDoc(f); }
-    else { text = await f.text(); if(ext === 'rtf') text = stripRtf(text); }
-    text = (text || '').replace(/\s+\n/g,'\n').trim();
-    if(text.length < 30) throw new Error('too short');
+    if(ext === 'pdf'){
+      if(typeof pdfjsLib === 'undefined') throw new Error('PDF reader did not load — check your internet, refresh the page, and try again.');
+      text = await readPdf(f);
+      if(text.trim().length < 30) throw new Error('This PDF is a scanned photo with no text inside. Open it, copy the text, and paste it in the box below — or use the original Word file.');
+    }
+    else if(ext === 'docx'){
+      if(typeof mammoth === 'undefined') throw new Error('Word reader did not load — check your internet, refresh the page, and try again.');
+      text = await readDocx(f);
+      if(text.trim().length < 30) throw new Error('No readable text found in this Word file — try copying the text and pasting it below.');
+    }
+    else if(ext === 'doc'){
+      text = await readOldDoc(f);
+      if(text.trim().length < 30) throw new Error('This old .doc file could not be read — open it in Word/WPS, copy the text, and paste it below.');
+    }
+    else {
+      text = await f.text();
+      if(ext === 'rtf') text = stripRtf(text);
+      if(text.trim().length < 30) throw new Error('No readable text in this file — copy the text and paste it below.');
+    }
+    text = text.replace(/\s+\n/g,'\n').trim();
     document.getElementById('cv').value = text;
     badge.style.color = '#7be08a';
     badge.textContent = '✓ Extracted "' + f.name + '" — ' + text.length.toLocaleString() + ' characters ready. Now hit Analyze!';
   }catch(e){
     badge.style.color = '#e07b7b';
-    badge.textContent = '✗ Could not read that file — please copy & paste the text instead.';
+    badge.textContent = '✗ ' + (e.message || 'Could not read that file — copy & paste the text instead.');
   }
   inp.value = '';
 }
+
 
 async function readPdf(f){
   const buf = await f.arrayBuffer();
