@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GulfHire AI — CV Optimizer for Gulf Jobs</title>
+<meta name="theme-color" content="#0a0a0a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="GulfHire AI">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
 <style>
@@ -55,8 +62,19 @@
 </head>
 <body>
 <div class="wrap">
-  <div id="ghHeader"><div class="badge">GulfHire AI · MVP</div>
-  <h1>Pass the <span>ATS</span>.<br>Get the Gulf interview.</h1></div>
+  <div id="ghHeader">
+    <div style="text-align:center;margin-bottom:14px">
+      <svg width="104" height="104" viewBox="0 0 120 120" style="margin:0 auto;display:block">
+        <circle cx="60" cy="60" r="56" fill="none" stroke="#d4af37" stroke-width="1.6"/>
+        <circle cx="60" cy="60" r="50" fill="none" stroke="#d4af37" stroke-width="0.5" opacity="0.45"/>
+        <text x="60" y="73" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="38" font-weight="bold" fill="#e8c976">GH</text>
+        <path d="M38 92 h44" stroke="#d4af37" stroke-width="0.7" opacity="0.7"/>
+        <path d="M60 88.5 l3.5 3.5 -3.5 3.5 -3.5 -3.5 z" fill="#d4af37"/>
+      </svg>
+      <div style="font-family:Georgia,serif;letter-spacing:7px;font-size:21px;color:#eaeaea;margin-top:12px">GULFHIRE <span style="color:#d4af37">AI</span></div>
+      <div style="font-family:Arial,sans-serif;font-size:10px;letter-spacing:4px;color:#9a9a9a;text-transform:uppercase;margin-top:5px">CV Optimizer for Gulf Jobs</div>
+    </div>
+  </div>
   <p class="sub">Upload your CV (PDF, Word, TXT) or paste the text — get an ATS score, missing keywords, and a recruiter-ready summary for Saudi, UAE &amp; Qatar jobs. <b style="color:var(--gold)">14 target roles.</b></p>
 
   <!-- PAYWALL -->
@@ -141,9 +159,10 @@
 </div>
 
 <script>
-/* ===== OWNER SETTINGS =====
-   CHANGE THIS CODE ANYTIME. Give it to customers after OPay payment.
-   For unlimited plan use code: GH2000                                        */
+/* ===== UNLOCK CODES =====
+   Codes come from your PRIVATE LIST (never stored here).
+   GH + 4 digits (digit-sum divisible by 7)   = ₦500 single report
+   GX + 4 digits (digit-sum mod 7 equals 3)   = ₦2,000 unlimited month        */
 function validCode(v){
   const m = v.match(/^GH(\d{4})$/);
   if(m){ const d = m[1].split('').map(Number); return (d[0]+d[1]+d[2]+d[3]) % 7 === 0; }
@@ -325,7 +344,7 @@ async function handleFile(inp){
     if(ext === 'pdf'){
       if(typeof pdfjsLib === 'undefined') throw new Error('PDF reader did not load — check your internet, refresh the page, and try again.');
       text = await readPdf(f);
-      if(text.trim().length < 30) throw new Error('This PDF is a scanned photo with no text inside. Open it, copy the text, and paste it in the box below — or use the original Word file.');
+      if(text.trim().length < 30) throw new Error('This PDF is a scanned photo with no text inside. Open it, copy the text, and paste it below — or use the original Word file.');
     }
     else if(ext === 'docx'){
       if(typeof mammoth === 'undefined') throw new Error('Word reader did not load — check your internet, refresh the page, and try again.');
@@ -351,7 +370,6 @@ async function handleFile(inp){
   }
   inp.value = '';
 }
-
 
 async function readPdf(f){
   const buf = await f.arrayBuffer();
@@ -405,8 +423,7 @@ function refreshGate(){
 
 function unlock(){
   const v = document.getElementById('code').value.trim().toUpperCase();
-    if(validCode(v)){
-
+  if(validCode(v)){
     localStorage.setItem('gh_unlocked','1');
     document.getElementById('lockMsg').style.color = '#7be08a';
     document.getElementById('lockMsg').textContent = '✅ Unlocked! Full reports are now open.';
@@ -471,6 +488,11 @@ function copyOut(){
 }
 
 refreshGate();
+
+/* App mode: register service worker so GulfHire installs like a native app */
+if('serviceWorker' in navigator && new URLSearchParams(location.search).get('embed') !== '1'){
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
 
 /* Embed mode: ?embed=1 hides the big header when inside an iframe */
 if(new URLSearchParams(location.search).get('embed') === '1'){
